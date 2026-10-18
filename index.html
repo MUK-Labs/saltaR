@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Record audio, video, motion and MIDI for SALTA. Keep a local draft, then upload when you are ready.">
+  <title>saltaR · capture for SALTA</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="masthead wrap"><a class="wordmark" href="./" aria-label="saltaR home">salta<span>R</span><i aria-hidden="true"></i></a><span class="eyebrow">CAPTURE FOR SALTA</span><span class="local-badge">Local first · upload when ready</span></header>
+  <main class="wrap">
+    <section class="intro"><p class="eyebrow">FROM PERFORMANCE TO EVIDENCE</p><h1>Keep the moment.<br><span>Explore it in SALTA.</span></h1><p>Capture sound, movement and musical events together. Review your take, keep a backup, and send it to your project.</p></section>
+    <noscript><p class="notice error">saltaR needs JavaScript to record and save drafts.</p></noscript>
+    <div id="global-status" class="notice hidden" role="status" aria-live="polite"></div>
+    <div class="workflow">
+      <aside class="sidebar">
+        <section class="card" aria-labelledby="connect-heading"><div class="section-head"><span class="step">01</span><h2 id="connect-heading">Connect</h2><span id="connection-badge" class="badge">Offline</span></div>
+          <form id="connect-form"><label for="api-base">SALTA address</label><input id="api-base" type="url" placeholder="https://salta.example.ac.at" autocomplete="url" required>
+          <label for="api-token">API token</label><input id="api-token" type="password" placeholder="Paste your SALTA token" autocomplete="off" spellcheck="false" required>
+          <p class="hint">Create a token in SALTA at <code>/home/api-tokens/</code>. It stays in memory and is cleared when you disconnect or reload.</p><div class="button-row"><button id="connect-btn" type="submit" class="primary">Connect to SALTA</button><button id="disconnect-btn" type="button" class="quiet hidden">Disconnect</button></div></form>
+          <p id="connect-status" class="hint" role="status">You can record and keep local drafts before connecting.</p>
+        </section>
+        <section class="card" aria-labelledby="project-heading"><div class="section-head"><span class="step">02</span><h2 id="project-heading">Project</h2></div>
+          <label for="project-select">Destination project</label><select id="project-select" disabled><option value="">Connect to load projects</option></select>
+          <details><summary>Create a project</summary><form id="project-form"><label for="project-name">Project name</label><input id="project-name" maxlength="120" required disabled><label for="project-description">Description <span class="optional">optional</span></label><input id="project-description" maxlength="255" disabled><button id="create-project-btn" type="submit" class="secondary" disabled>Create project</button></form></details>
+          <p class="hint">Each take groups its sources under one recording. Nothing uploads until you choose Upload.</p>
+        </section>
+        <section class="card storage-card" aria-labelledby="drafts-heading"><div class="section-head"><h2 id="drafts-heading">On this device</h2><span id="draft-count" class="badge">0 drafts</span></div><p class="hint">Completed takes are saved in this browser. Download backups before clearing browser data or switching devices.</p><ul id="draft-list" class="item-list"><li class="empty">No saved drafts yet.</li></ul><label class="file-button secondary" for="restore-file">Restore a backup</label><input id="restore-file" class="visually-hidden" type="file" accept=".saltar"><p id="storage-status" class="hint" role="status"></p></section>
+      </aside>
+      <div class="main-column">
+        <section class="card recorder-card" aria-labelledby="record-heading"><div class="section-head"><span class="step">03</span><h2 id="record-heading">Record a take</h2><span id="capture-badge" class="badge">Ready to set up</span></div>
+          <div id="source-controls"><fieldset class="source-grid"><legend>Choose your sources</legend>
+            <label class="source-option"><input type="radio" name="av-mode" value="audio" checked><span><strong>Microphone</strong><small>Audio → SALTA processing</small></span><span class="source-icon" aria-hidden="true">◉</span></label>
+            <label class="source-option"><input type="radio" name="av-mode" value="video"><span><strong>Camera + microphone</strong><small>One video file with sound</small></span><span class="source-icon" aria-hidden="true">▣</span></label>
+            <label class="source-option"><input type="radio" name="av-mode" value="none"><span><strong>No audio or video</strong><small>Use motion and/or MIDI</small></span></label>
+          </fieldset><div class="aux-sources"><label class="check-row"><input id="motion-enabled" type="checkbox"><span><strong>Device motion</strong><small>Acceleration · raw data only in v1</small></span></label><p id="motion-support" class="hint"></p><label class="check-row"><input id="midi-enabled" type="checkbox"><span><strong>MIDI input</strong><small>Musical events · raw data only in v1</small></span></label><div class="midi-row"><select id="midi-device" aria-label="MIDI input device"><option value="">Choose a MIDI input</option></select><button id="find-midi-btn" type="button" class="quiet">Find MIDI devices</button></div><p id="midi-support" class="hint"></p></div></div>
+          <div class="capture-stage"><video id="camera-preview" class="hidden" autoplay muted playsinline aria-label="Camera preview"></video><div class="capture-center"><div id="recording-indicator" class="recording-light" aria-hidden="true"></div><output id="capture-time" class="timer" aria-label="Recording duration">00:00</output><p id="capture-message">Enable your sources, then start a take.</p><p id="capture-counts" class="capture-counts">Up to 5 minutes or 64 MB per take</p></div></div>
+          <div class="button-row recording-actions"><button id="prepare-btn" type="button" class="secondary">Enable sources</button><button id="start-btn" type="button" class="primary" disabled><span aria-hidden="true">●</span> Start recording</button><button id="stop-btn" type="button" class="danger hidden">■ Stop & save</button><button id="release-btn" type="button" class="quiet hidden">Release sources</button></div>
+          <p class="hint">Keep this page visible and the screen awake. Switching away stops the take; closing the page can lose an unfinished recording. Timing across sources is approximate, not hardware synchronized.</p>
+          <details class="import-details"><summary>Use an existing file instead</summary><p class="hint">Choose the modality explicitly. Audio/video can be processed; motion and MIDI events must use saltaR’s JSON schema and are stored only.</p><form id="import-form" class="import-row"><label for="import-kind">Modality</label><select id="import-kind"><option value="audio">Audio</option><option value="video">Video</option><option value="acceleration">Acceleration JSON (raw only)</option><option value="midi_events">MIDI events JSON (raw only)</option></select><label for="import-file">File</label><input id="import-file" type="file" required><button type="submit" class="secondary">Keep as local draft</button></form></details>
+        </section>
+        <section id="review-section" class="card" aria-labelledby="review-heading"><div class="section-head"><span class="step">04</span><h2 id="review-heading">Review & upload</h2><span id="draft-state" class="badge">No take selected</span></div>
+          <p id="review-empty" class="empty">Your next take will appear here. Recording never starts an upload.</p>
+          <div id="review-content" class="hidden"><label for="take-label">Take name</label><input id="take-label" maxlength="120"><p id="take-meta" class="hint"></p><div id="stream-list" class="stream-list"></div><p id="timing-note" class="hint"></p><p class="hint">Original streams require your SALTA token to download. Processed results follow SALTA’s existing media access policy.</p><div class="button-row"><button id="upload-btn" type="button" class="primary" disabled>Upload to project</button><button id="cancel-upload-btn" type="button" class="quiet hidden">Cancel upload</button><button id="backup-btn" type="button" class="secondary">Download backup</button><button id="delete-draft-btn" type="button" class="quiet">Delete local draft</button></div><progress id="upload-progress" max="1" value="0" class="hidden" aria-label="Upload progress"></progress><p id="upload-status" class="hint" role="status"></p></div>
+        </section>
+        <section class="card" aria-labelledby="history-heading"><div class="section-head"><h2 id="history-heading">Saved on SALTA</h2><button id="refresh-history-btn" class="quiet" type="button" disabled>Refresh</button></div><p class="hint">Recent recordings in the selected project, including original files and processing status.</p><ul id="history-list" class="item-list"><li class="empty">Connect and choose a project to see its recordings.</li></ul><div id="history-detail"></div></section>
+      </div>
+    </div>
+    <footer><span>saltaR · a companion to SALTA</span><span>Capture → keep → explore</span></footer>
+  </main>
+</body>
+</html>
