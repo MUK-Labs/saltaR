@@ -7,7 +7,7 @@ function errorFor(payload, status) { return new ApiError(payload?.error?.message
 
 export class SaltaApi {
   #token;
-  constructor(origin, token, fetcher = globalThis.fetch) {
+  constructor(origin, token, fetcher = globalThis.fetch.bind(globalThis)) {
     this.origin = apiOrigin(origin);
     if (!token.trim() || /[\r\n]/.test(token)) throw new Error('Paste a valid SALTA API token.');
     this.#token = token.trim(); this.fetcher = fetcher; this.controller = new AbortController();

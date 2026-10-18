@@ -38,6 +38,26 @@ test('JSON API omits cookies, rejects redirects and sends token only in Authoriz
   assert.ok(!JSON.stringify(api).includes('salta_secret')); assert.ok(!url.includes('salta_secret'));
   api.disconnect(); assert.equal(options.signal.aborted, true); await assert.rejects(api.projects(), /Connect/);
 });
+test('default browser fetch supports connection and downloads with its global receiver', async t => {
+  const calls = [];
+  // Browser Web IDL methods reject an unrelated object as their receiver;
+  // Node fetch and arrow-function test doubles do not enforce that check.
+  t.mock.method(globalThis, 'fetch', async function (url, options) {
+    if (this != null && this !== globalThis) throw new TypeError('Illegal invocation');
+    calls.push({url, options});
+    if (url.endsWith('/download/')) return new Response('original');
+    return Response.json(url.endsWith('/capabilities/') ? {api_version: '1'} : {projects: []});
+  });
+  const api = new SaltaApi('https://salta.example', 'salta_test');
+  const [caps, projects] = await Promise.all([api.capabilities(), api.projects()]);
+  assert.equal(caps.api_version, '1'); assert.deepEqual(projects.projects, []);
+  assert.equal(await (await api.download(draft().id, 'microphone')).text(), 'original');
+  assert.equal(calls.length, 3);
+  for (const {options} of calls) {
+    assert.equal(options.headers.Authorization, 'Bearer salta_test');
+    assert.equal(options.credentials, 'omit'); assert.equal(options.redirect, 'error');
+  }
+});
 test('history query is bounded and original downloads use fixed authenticated paths', async () => {
   const calls = []; const api = new SaltaApi('https://salta.example', 'secret', async (url, options) => { calls.push({url, options}); return {ok: true, json: async () => ({}), blob: async () => new Blob(['original'])}; });
   await api.recordings(9, 2); assert.equal(calls[0].url, 'https://salta.example/api/v1/recordings/?project_id=9&page=2&page_size=20');
